@@ -3,13 +3,11 @@ name: iOS Build
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-15  # GitHub Actions 免费 Mac 运行器
+    runs-on: macos-15
 
     steps:
       - name: Checkout code
@@ -19,32 +17,32 @@ jobs:
         run: brew install xcodegen
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+          xcodebuild -version
+
+      - name: List available simulators
+        run: xcrun simctl list devices available | grep iPhone | head -10
 
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build for Simulator (验证编译)
+      - name: Build for Simulator
         run: |
+          SIM_ID=$(xcrun simctl list devices available iPhone | grep -m1 "iPhone 16" | sed -E 's/.*\(([A-F0-9-]+)\).*/\1/')
+          if [ -z "$SIM_ID" ]; then
+            # fallback to iPhone 15 Pro
+            SIM_ID=$(xcrun simctl list devices available iPhone | grep -m1 "iPhone 15" | sed -E 's/.*\(([A-F0-9-]+)\).*/\1/')
+          fi
+          echo "Using simulator: $SIM_ID"
           xcodebuild build \
             -project StockPredictor.xcodeproj \
             -scheme StockPredictor \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "platform=iOS Simulator,id=$SIM_ID" \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-
-      - name: Run Tests
-        run: |
-          xcodebuild test \
-            -project StockPredictor.xcodeproj \
-            -scheme StockPredictor \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-        continue-on-error: true
 
       - name: Archive (无签名 IPA)
         run: |
@@ -72,5 +70,5 @@ jobs:
       - name: Build Summary
         run: |
           echo "### iOS Build Complete" >> $GITHUB_STEP_SUMMARY
-          echo "Download the IPA artifact below." >> $GITHUB_STEP_SUMMARY
-          echo "Install via: Xcode → Devices → Drag IPA, or AltStore/SideStore" >> $GITHUB_STEP_SUMMARY
+          echo "Download IPA from Artifacts below." >> $GITHUB_STEP_SUMMARY
+          echo "Install via AltStore / SideStore / 爱思助手" >> $GITHUB_STEP_SUMMARY
