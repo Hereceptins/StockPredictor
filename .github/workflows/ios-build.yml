@@ -50,12 +50,15 @@ jobs:
           echo "=== Fixed Info.plist ==="
           /usr/libexec/PlistBuddy -c "Print" "$PLIST"
 
-      - name: Package IPA
+      - name: Package IPA (macOS native ditto - preserves .app structure)
         run: |
           mkdir -p build/Payload build/export
           APP=$(find build/App -name "*.app" -type d | head -1)
           cp -R "$APP" build/Payload/
-          cd build && zip -r -y export/StockPredictor.ipa Payload/
+          ditto -c -k --sequesterRsrc --keepParent build/Payload build/export/StockPredictor.ipa
+          echo "IPA size: $(wc -c < build/export/StockPredictor.ipa) bytes"
+          # verify contents
+          unzip -l build/export/StockPredictor.ipa | head -20
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
