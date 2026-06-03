@@ -19,22 +19,24 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build and Archive (无签名 IPA)
+      - name: Build app
         run: |
-          xcodebuild archive \
+          xcodebuild build \
             -project StockPredictor.xcodeproj \
             -scheme StockPredictor \
-            -archivePath build/StockPredictor.xcarchive \
-            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CONFIGURATION_BUILD_DIR=build/App
 
-      - name: Export IPA
+      - name: Create IPA
         run: |
           mkdir -p build/Payload
-          cp -R build/StockPredictor.xcarchive/Products/Applications/StockPredictor.app build/Payload/
+          APP_PATH=$(find build/App -name "*.app" -type d | head -1)
+          echo "App found at: $APP_PATH"
+          cp -R "$APP_PATH" build/Payload/
           cd build && zip -r StockPredictor.ipa Payload/
 
       - name: Upload IPA
