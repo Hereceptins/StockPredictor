@@ -26,24 +26,26 @@ jobs:
             -scheme StockPredictor \
             -sdk iphoneos \
             -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="-" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGNING_REQUIRED=YES \
             CONFIGURATION_BUILD_DIR=build/App
 
-      - name: Ad-hoc sign
+      - name: Fake-sign binary
         run: |
           APP_PATH=$(find build/App -name "*.app" -type d | head -1)
           echo "App: $APP_PATH"
-          /usr/bin/codesign -f -s - --entitlements Entitlements.plist "$APP_PATH" 2>&1 || true
-          echo "Signing done"
+          EXEC=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          echo "Executable: $EXEC"
+          /usr/bin/codesign --force --sign - --timestamp=none "$APP_PATH" 2>&1 || echo "codesign skipped"
+          brew install ldid 2>/dev/null && ldid -S "$APP_PATH/$EXEC" 2>&1 || echo "ldid skipped"
 
       - name: Create IPA
         run: |
           mkdir -p build/Payload
           APP_PATH=$(find build/App -name "*.app" -type d | head -1)
           cp -R "$APP_PATH" build/Payload/
-          cd build && zip -r StockPredictor.ipa Payload/
+          cd build && zip -r -y StockPredictor.ipa Payload/
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
