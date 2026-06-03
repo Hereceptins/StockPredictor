@@ -163,7 +163,7 @@ struct HoldingsList: View {
 }
 
 struct HoldingItem: Identifiable {
-    let id: String { code }
+    var id: String { code }
     let code: String
     let name: String
     let shares: Int
