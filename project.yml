@@ -22,18 +22,24 @@ targets:
         excludes:
           - "project.yml"
           - "Info.plist"
+          - ".github"
+          - ".gitignore"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.stockpredictor.app
         PRODUCT_NAME: "智选K线"
         INFOPLIST_FILE: Info.plist
-        DEVELOPMENT_TEAM: ""  # 填入你的Apple Developer Team ID
+        DEVELOPMENT_TEAM: ""
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOSTRING_FILE: YES
         SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
         TARGETED_DEVICE_FAMILY: "1"
         ENABLE_USER_SCRIPT_SANDBOXING: NO
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    scheme:
+      testTargets:
+        - StockPredictorTests
+      gatherCoverageData: true
     dependencies:
       - sdk: SwiftData.framework
       - sdk: SwiftUI.framework
@@ -43,13 +49,6 @@ targets:
       - sdk: Charts.framework
       - sdk: UserNotifications.framework
       - sdk: BackgroundTasks.framework
-    preBuildScripts:
-      - name: "SwiftLint"
-        script: |
-          if which swiftlint > /dev/null; then
-            swiftlint
-          fi
-        basedOnDependencyAnalysis: false
 
   StockPredictorTests:
     type: bundle.unit-test
