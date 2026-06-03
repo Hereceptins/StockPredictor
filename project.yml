@@ -36,10 +36,9 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
-    scheme:
-      configVariants:
-        - Debug
-        - Release
+    configs:
+      Debug: debug
+      Release: release
     dependencies:
       - sdk: SwiftData.framework
       - sdk: SwiftUI.framework
