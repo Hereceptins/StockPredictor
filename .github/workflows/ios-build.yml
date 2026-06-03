@@ -19,29 +19,41 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Archive (Xcode auto-completes Info.plist)
+      - name: Build (get app binary)
         run: |
-          xcodebuild archive \
+          xcodebuild build \
             -project StockPredictor.xcodeproj \
             -scheme StockPredictor \
-            -archivePath build/StockPredictor.xcarchive \
-            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CONFIGURATION_BUILD_DIR=build/App
 
-      - name: Extract App from Archive (has complete Info.plist)
+      - name: Inject missing Info.plist fields (the real fix)
         run: |
-          APP=$(find build/StockPredictor.xcarchive -name "*.app" -type d | head -1)
-          echo "Found: $APP"
-          # 验证 Info.plist 是否完整
-          /usr/libexec/PlistBuddy -c "Print :MinimumOSVersion" "$APP/Info.plist" 2>/dev/null && echo "MinOSVersion OK" || echo "Missing MinimumOSVersion"
+          APP=$(find build/App -name "*.app" -type d | head -1)
+          PLIST="$APP/Info.plist"
+          echo "App: $APP"
+          # 注入 Xcode 才会自动补全的关键字段
+          /usr/libexec/PlistBuddy -c "Add :MinimumOSVersion string 17.0" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 17.0" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily array" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIDeviceFamily:0 integer 1" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :DTPlatformName string iphoneos" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :DTPlatformVersion string 17.0" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :DTSDKName string iphoneos17.0" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleSupportedPlatforms array" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleSupportedPlatforms:0 string iPhoneOS" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIRequiredDeviceCapabilities array" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIRequiredDeviceCapabilities:0 string arm64" "$PLIST" 2>/dev/null || true
+          echo "=== Fixed Info.plist ==="
+          /usr/libexec/PlistBuddy -c "Print" "$PLIST"
 
       - name: Package IPA
         run: |
           mkdir -p build/Payload build/export
-          APP=$(find build/StockPredictor.xcarchive -name "*.app" -type d | head -1)
+          APP=$(find build/App -name "*.app" -type d | head -1)
           cp -R "$APP" build/Payload/
           cd build && zip -r -y export/StockPredictor.ipa Payload/
 
