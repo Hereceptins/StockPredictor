@@ -29,12 +29,13 @@ targets:
           - "README.md"
           - "**/.DS_Store"
           - "Tests"
+          - "Entitlements.plist"
+          - "sync.py"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.stockpredictor.app
         PRODUCT_NAME: "StockLens"
         INFOPLIST_FILE: Info.plist
-        CODE_SIGN_ENTITLEMENTS: Entitlements.plist
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOSTRING_FILE: YES
