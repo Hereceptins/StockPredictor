@@ -24,6 +24,11 @@ targets:
           - "Info.plist"
           - ".github"
           - ".gitignore"
+          - ".git"
+          - "upload_to_github.py"
+          - "README.md"
+          - "**/.DS_Store"
+          - "Tests"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.stockpredictor.app
