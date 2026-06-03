@@ -300,7 +300,7 @@ struct MarketTag: View {
 // MARK: - 数据模型
 
 struct RankedStock: Identifiable {
-    let id: String { code }
+    var id: String { code }
     let code: String
     let name: String
     let symbol: String
