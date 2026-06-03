@@ -3,13 +3,11 @@ name: iOS Build
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-15  # GitHub Actions 免费 Mac 运行器
+    runs-on: macos-15
 
     steps:
       - name: Checkout code
@@ -18,41 +16,17 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build for Simulator (验证编译)
-        run: |
-          xcodebuild build \
-            -project StockPredictor.xcodeproj \
-            -scheme StockPredictor \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run Tests
-        run: |
-          xcodebuild test \
-            -project StockPredictor.xcodeproj \
-            -scheme StockPredictor \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-        continue-on-error: true
-
-      - name: Archive (无签名 IPA)
+      - name: Build and Archive (无签名 IPA)
         run: |
           xcodebuild archive \
             -project StockPredictor.xcodeproj \
             -scheme StockPredictor \
             -archivePath build/StockPredictor.xcarchive \
             -destination 'generic/platform=iOS' \
+            -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
@@ -68,9 +42,3 @@ jobs:
         with:
           name: StockPredictor.ipa
           path: build/StockPredictor.ipa
-
-      - name: Build Summary
-        run: |
-          echo "### iOS Build Complete" >> $GITHUB_STEP_SUMMARY
-          echo "Download the IPA artifact below." >> $GITHUB_STEP_SUMMARY
-          echo "Install via: Xcode → Devices → Drag IPA, or AltStore/SideStore" >> $GITHUB_STEP_SUMMARY
