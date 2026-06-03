@@ -19,32 +19,29 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build
+      - name: Archive (Xcode auto-completes Info.plist)
         run: |
-          xcodebuild build \
+          xcodebuild archive \
             -project StockPredictor.xcodeproj \
             -scheme StockPredictor \
-            -sdk iphoneos \
+            -archivePath build/StockPredictor.xcarchive \
+            -destination 'generic/platform=iOS' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            CONFIGURATION_BUILD_DIR=build/App
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Fake-sign with ldid (bypasses iOS 18.5 SDK restriction)
+      - name: Extract App from Archive (has complete Info.plist)
         run: |
-          brew install ldid
-          APP=$(find build/App -name "*.app" -type d | head -1)
-          EXEC=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP/Info.plist")
-          echo "App: $APP, Exec: $EXEC"
-          ldid -S "$APP/$EXEC"
-          echo "ldid done"
+          APP=$(find build/StockPredictor.xcarchive -name "*.app" -type d | head -1)
+          echo "Found: $APP"
+          # 验证 Info.plist 是否完整
+          /usr/libexec/PlistBuddy -c "Print :MinimumOSVersion" "$APP/Info.plist" 2>/dev/null && echo "MinOSVersion OK" || echo "Missing MinimumOSVersion"
 
       - name: Package IPA
         run: |
-          rm -rf build/Payload build/export
           mkdir -p build/Payload build/export
-          APP=$(find build/App -name "*.app" -type d | head -1)
+          APP=$(find build/StockPredictor.xcarchive -name "*.app" -type d | head -1)
           cp -R "$APP" build/Payload/
           cd build && zip -r -y export/StockPredictor.ipa Payload/
 
