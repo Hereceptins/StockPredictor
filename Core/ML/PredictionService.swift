@@ -59,7 +59,7 @@ final class PredictionService: @unchecked Sendable {
         let provider = try MLDictionaryFeatureProvider(dictionary: [
             "features": MLFeatureValue(multiArray: input)
         ])
-        let output = try model.prediction(from: provider)
+        let output = try await model.prediction(from: provider)
         let predictedReturn = output.featureValue(for: "predicted_return")?.doubleValue ?? 0.0
 
         // 3. 确定方向和标签
@@ -259,12 +259,14 @@ final class FeatureEngine {
 
         // === 异常检验 ===
         let ret1d = feat[0]
-        let ret5dAvg = (0..<min(5, n-1)).map {
-            (closes[n-1-$0] - closes[n-2-$0]) / closes[n-2-$0]
-        }.reduce(0, +) / 5
-        let ret5dStd = std((0..<min(5, n-1)).map {
-            (closes[n-1-$0] - closes[n-2-$0]) / closes[n-2-$0]
-        })
+        let count = min(5, n - 1)
+        var recentRets: [Double] = []
+        for i in 0..<count {
+            let ret = (closes[n-1-i] - closes[n-2-i]) / closes[n-2-i]
+            recentRets.append(ret)
+        }
+        let ret5dAvg = recentRets.reduce(0, +) / Double(count)
+        let ret5dStd = std(recentRets)
         feat.append(ret5dStd > 0 ? (ret1d - ret5dAvg) / ret5dStd : 0)   // anomaly_score
         feat.append(feat[10] > 3 ? 1.0 : 0.0)                           // pump_and_dump_risk
 
