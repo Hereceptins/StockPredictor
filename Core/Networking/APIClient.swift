@@ -17,7 +17,7 @@ final class APIClient: Sendable {
         session = URLSession(configuration: config)
 
         // 默认后端地址（开发环境）
-        baseURL = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "http://localhost:8000"
+        baseURL = ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "https://volatile-overfull-showgirl.ngrok-free.dev"
 
         decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -44,6 +44,7 @@ final class APIClient: Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("chrome", forHTTPHeaderField: "ngrok-skip-browser-warning")
         // API Key 认证（与后端 config.py api_key_header 一致）
         if let apiKey = ProcessInfo.processInfo.environment["API_KEY"] {
             request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
