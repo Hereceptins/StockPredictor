@@ -278,7 +278,7 @@ struct ReturnChart: View {
                 }
                 .frame(height: 200)
                 .chartYAxis {
-                    AxisMarks(format: .percent)
+                    AxisMarks()
                 }
                 .padding()
             }
