@@ -16,55 +16,17 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Select Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-          xcodebuild -version
-
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Show available runtimes
-        run: |
-          echo "=== Simulators ==="
-          xcrun simctl list devices available | grep iPhone
-          echo "=== Runtimes ==="
-          xcrun simctl list runtimes
-
-      - name: Build for Simulator
-        run: |
-          # 列出所有iPhone模拟器，取第一个
-          SIMS=$(xcrun simctl list devices available | grep "iPhone" | grep -v "Unavailable")
-          if [ -z "$SIMS" ]; then
-            echo "No simulators found - trying boot"
-            xcrun simctl boot "iPhone 15" 2>/dev/null || true
-            SIMS=$(xcrun simctl list devices | grep "iPhone" | grep -v "Unavailable")
-          fi
-          SIM_ID=$(echo "$SIMS" | head -1 | sed -E 's/.*\(([A-F0-9-]+)\).*/\1/')
-          echo "Found simulator: $SIM_ID"
-          if [ -n "$SIM_ID" ]; then
-            DEST="platform=iOS Simulator,id=$SIM_ID"
-          else
-            DEST="platform=iOS Simulator,name=iPhone 15"
-          fi
-          echo "Destination: $DEST"
-          xcodebuild build \
-            -project StockPredictor.xcodeproj \
-            -scheme StockPredictor \
-            -destination "$DEST" \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM=""
-
-      - name: Archive (无签名 IPA)
+      - name: Build and Archive (无签名 IPA)
         run: |
           xcodebuild archive \
             -project StockPredictor.xcodeproj \
             -scheme StockPredictor \
             -archivePath build/StockPredictor.xcarchive \
             -destination 'generic/platform=iOS' \
+            -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
@@ -80,9 +42,3 @@ jobs:
         with:
           name: StockPredictor.ipa
           path: build/StockPredictor.ipa
-
-      - name: Build Summary
-        run: |
-          echo "### iOS Build Complete" >> $GITHUB_STEP_SUMMARY
-          echo "Download IPA from Artifacts below." >> $GITHUB_STEP_SUMMARY
-          echo "Install via AltStore / SideStore / 爱思助手" >> $GITHUB_STEP_SUMMARY
