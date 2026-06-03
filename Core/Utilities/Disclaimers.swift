@@ -33,9 +33,7 @@ enum Disclaimers {
     static let riskWarning = "股市有风险，投资需谨慎"
 
     /// App Store 描述合规检查
-    static let appStoreSafeDescription = """
-    智选K线是一款A股数据分析工具，运用AI算法对历史市场数据进行统计分析和可视化展示。\
-    不提供投资顾问服务。所有分析结果仅供参考。"""
+    static let appStoreSafeDescription = "智选K线是一款A股数据分析工具，运用AI算法对历史市场数据进行统计分析和可视化展示。不提供投资顾问服务。所有分析结果仅供参考。"
 
     /// 禁止使用的措辞（用于自查）
     static let forbiddenTerms: Set<String> = [
