@@ -37,9 +37,9 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     scheme:
-      testTargets:
-        - StockPredictorTests
-      gatherCoverageData: true
+      configVariants:
+        - Debug
+        - Release
     dependencies:
       - sdk: SwiftData.framework
       - sdk: SwiftUI.framework
