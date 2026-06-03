@@ -9,7 +9,7 @@ final class PredictionService: @unchecked Sendable {
 
     private var rankingModel: MLModel?
     private var sentimentClassifier: NLModel?
-    private let modelManager = ModelManager()
+    let modelManager = ModelManager()
     private let featureEngine = FeatureEngine()
 
     private init() {
