@@ -1,23 +1,11 @@
-# StockPredictor API — 轻量依赖 (不含ML训练)
 fastapi==0.111.0
 uvicorn[standard]==0.30.0
 pydantic==2.7.0
-
-# Database
 sqlalchemy==2.0.30
 aiosqlite==0.20.0
-
-# Data
 pandas>=2.2.0
 numpy>=1.26.0
 scikit-learn>=1.5.0
-
-# ML Inference only (LightGBM预测，不含训练)
 lightgbm>=4.5.0
-
-# Auth
-python-jose[cryptography]==3.3.0
-
-# HTTP
 python-multipart==0.0.9
 httpx==0.27.0
