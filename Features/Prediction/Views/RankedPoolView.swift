@@ -46,6 +46,18 @@ struct RankedPoolView: View {
                 }
                 .frame(maxHeight: .infinity)
             } else {
+                if let error = vm.errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .padding(.horizontal)
+                }
+                if vm.isUsingMockData {
+                    Text("(示例数据 · 服务器未连接)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+                }
                 List {
                     ForEach(Array(vm.rankedStocks.enumerated()), id: \.element.id) { index, ranked in
                         RankedStockCard(
@@ -331,41 +343,38 @@ final class RankedPoolViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var newAdditions: Set<String> = []
     @Published var isUsingMockData = false
+    @Published var errorMessage: String? = nil
 
     private let api = APIClient.shared
-    var isOffline: Bool = false
 
     func loadRankedPool() async {
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
 
-        // 1. 优先调用后端 API
-        if !isOffline {
-            do {
-                let pool = try await api.fetchDailyPool()
-                if !pool.isEmpty {
-                    isUsingMockData = false
-                    rankedStocks = pool.map { ps in
-                        RankedStock(
-                            code: ps.code, name: ps.name,
-                            symbol: ps.code.replacingOccurrences(of: ".SH", with: "").replacingOccurrences(of: ".SZ", with: ""),
-                            market: "", industry: "",
-                            latestPrice: nil, latestChange: nil,
-                            direction: ps.direction, confidence: ps.confidence,
-                            overallScore: ps.overallScore ?? 50,
-                            signalTags: ps.signalTags ?? [],
-                            factorScores: FactorScores(momentum: 50, value: 50, quality: 50, sentiment: 50, technical: 50)
-                        )
-                    }
-                    return
+        do {
+            let pool = try await api.fetchDailyPool()
+            if !pool.isEmpty {
+                isUsingMockData = false
+                rankedStocks = pool.map { ps in
+                    RankedStock(
+                        code: ps.code, name: ps.name,
+                        symbol: ps.code.replacingOccurrences(of: ".SH", with: "").replacingOccurrences(of: ".SZ", with: ""),
+                        market: "", industry: "",
+                        latestPrice: nil, latestChange: nil,
+                        direction: ps.direction, confidence: ps.confidence,
+                        overallScore: ps.overallScore ?? 50,
+                        signalTags: ps.signalTags ?? [],
+                        factorScores: FactorScores(momentum: 50, value: 50, quality: 50, sentiment: 50, technical: 50)
+                    )
                 }
-            } catch {
-                // 后端不可用，降级
+                return
             }
+        } catch {
+            errorMessage = "服务器连接失败，显示本地示例数据"
         }
 
-        // 2. 降级：本地CoreML推理 或 Mock数据
-        // TODO: 从SwiftData加载自选股的PriceHistory，本地CoreML推理排序
+        // 降级
         isUsingMockData = true
         rankedStocks = generateMockRankings()
     }
