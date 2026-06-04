@@ -1,19 +1,36 @@
-# Xcode
-*.xcworkspace
-*.xcuserdata
-*.xcodeproj
-build/
-DerivedData/
-*.xcarchive
-*.ipa
+# 环境变量
+.env
 
-# SwiftPM
-.build/
-.swiftpm/
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 数据文件
+data/raw/
+*.db
+*.sqlite
+# price parquet allowed (needed for Railway deploy)
+data/processed/northbound/
+data/processed/backtest_result.json
+data/backfill_progress.json
+
+# 模型
+models_output/
+coreml_models/
+
+# IDE
+.vscode/
+.idea/
+
+# 测试
+.pytest_cache/
+htmlcov/
+.coverage
 
 # macOS
 .DS_Store
-
-# 敏感文件
-sync.py
-upload_to_github.py
