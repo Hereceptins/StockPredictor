@@ -23,12 +23,8 @@ async def get_daily_pool(
     """获取每日精选池（Top 20）"""
     service = PredictionService(db)
     pool = await service.get_daily_pool()
-    return APIResponse(data={
-        "date": pool.get("date", ""),
-        "total_analyzed": pool.get("total_analyzed", 0),
-        "pool": [PoolStock.model_validate(p).model_dump() for p in pool.get("pool", [])],
-        "disclaimer": "本精选池由AI模型基于历史数据统计规律生成，不构成荐股或买卖建议",
-    })
+    stocks = [PoolStock.model_validate(p).model_dump() for p in pool.get("pool", [])]
+    return APIResponse(data=stocks)
 
 
 @router.get("/accuracy-report", response_model=APIResponse)
