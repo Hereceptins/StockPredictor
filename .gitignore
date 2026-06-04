@@ -13,3 +13,7 @@ DerivedData/
 
 # macOS
 .DS_Store
+
+# 敏感文件
+sync.py
+upload_to_github.py
