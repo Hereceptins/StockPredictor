@@ -1,0 +1,12 @@
+# Railway / Nixpacks 部署配置
+[phases.setup]
+nixPkgs = ["..."]  # use default Python
+
+[phases.install]
+cmds = ["pip install -r requirements-api.txt"]
+
+[start]
+cmd = "python scripts/seed_and_serve.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+
+[variables]
+TUSHARE_TOKEN = ""
